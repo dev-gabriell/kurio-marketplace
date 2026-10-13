@@ -1,8 +1,72 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 @import "@fontsource-variable/jetbrains-mono";
 
-body {
-  font-family: "JetBrains Mono Variable", ui-monospace, monospace;
-  background: #130c0a;
-  color: #f5ebdd;
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: "JetBrains Mono Variable", ui-monospace, monospace;
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-band: var(--band);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+/* Identidade Kurio: tema único e escuro (valores estimados, confirmar no Figma) */
+:root {
+  --background: #130c0a;
+  --foreground: #f5ebdd;
+  --card: #211613;
+  --card-foreground: #f5ebdd;
+  --popover: #211613;
+  --popover-foreground: #f5ebdd;
+  --primary: #d4864a;
+  --primary-foreground: #130c0a;
+  --secondary: #3a2210;
+  --secondary-foreground: #f5ebdd;
+  --muted: #211613;
+  --muted-foreground: #c9a27e;
+  --accent: #3a2210;
+  --accent-foreground: #f5ebdd;
+  --destructive: #e5584b;
+  --border: #3a2210;
+  --input: #3a2210;
+  --ring: #d4864a;
+  --surface: #211613;
+  --band: #3a2210;
+  --radius: 0.25rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
