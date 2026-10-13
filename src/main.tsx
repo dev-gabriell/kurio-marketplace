@@ -5,7 +5,9 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen'
 import './index.css'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: false } },
+})
 
 const router = createRouter({
   routeTree,
@@ -19,10 +21,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  </StrictMode>,
-)
+async function bootstrap() {
+  if (import.meta.env.VITE_ENABLE_MOCKS === 'true') {
+    const { initScenario } = await import('./mocks/scenarios')
+    const { worker } = await import('./mocks/browser')
+    initScenario()
+    await worker.start({ onUnhandledRequest: 'bypass' })
+  }
+
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </StrictMode>,
+  )
+}
+
+bootstrap()
