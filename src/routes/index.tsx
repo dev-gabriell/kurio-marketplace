@@ -48,13 +48,21 @@ function Home() {
 
       {data && (
         <nav className="mt-6 flex items-center gap-4" aria-label="Paginação">
-          <Link to="/" search={(prev) => ({ ...prev, page: Math.max(1, prev.page - 1) })} disabled={data.page <= 1}>
-            ← Anterior
-          </Link>
-          <span>{data.page} / {data.totalPages}</span>
-          <Link to="/" search={(prev) => ({ ...prev, page: prev.page + 1 })} disabled={data.page >= data.totalPages}>
-            Próxima →
-          </Link>
+          <Link
+  to="/"
+  search={(prev) => ({ ...prev, page: Math.max(1, (prev.page ?? 1) - 1) })}
+  disabled={data.page <= 1}
+>
+  ← Anterior
+</Link>
+<span>{data.page} / {data.totalPages}</span>
+<Link
+  to="/"
+  search={(prev) => ({ ...prev, page: (prev.page ?? 1) + 1 })}
+  disabled={data.page >= data.totalPages}
+>
+  Próxima →
+</Link>
         </nav>
       )}
     </main>
