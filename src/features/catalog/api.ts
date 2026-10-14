@@ -1,5 +1,5 @@
 import { http } from '@/lib/http'
-import { nftListSchema, nftSchema, type CatalogSearch } from './schemas'
+import { nftDetailSchema, nftListSchema, nftSchema, type CatalogSearch } from './schemas'
 
 export async function fetchNfts(params: CatalogSearch, signal?: AbortSignal) {
   const { data } = await http.get('/nfts', { params, signal })
@@ -13,5 +13,5 @@ export async function fetchFeaturedNft(signal?: AbortSignal) {
 
 export async function fetchNft(id: string, signal?: AbortSignal) {
   const { data } = await http.get(`/nfts/${encodeURIComponent(id)}`, { signal })
-  return nftSchema.parse(data)
+  return nftDetailSchema.parse(data)
 }

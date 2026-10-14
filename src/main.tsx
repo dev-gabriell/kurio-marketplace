@@ -13,6 +13,7 @@ const router = createRouter({
   routeTree,
   context: { queryClient },
   defaultPreload: 'intent',
+  scrollRestoration: true,
 })
 
 declare module '@tanstack/react-router' {
@@ -26,7 +27,7 @@ async function bootstrap() {
     const { initScenario } = await import('./mocks/scenarios')
     const { worker } = await import('./mocks/browser')
     initScenario()
-    await worker.start({ onUnhandledRequest: 'bypass' })
+    await worker.start({ onUnhandledRequest: 'warn' })
   }
 
   createRoot(document.getElementById('root')!).render(

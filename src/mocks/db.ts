@@ -1,5 +1,5 @@
 import { cmp } from '@/lib/money'
-import type { CatalogSearch, Nft, NftList } from '@/features/catalog/schemas'
+import type { CatalogSearch, Nft, NftDetail, NftList } from '@/features/catalog/schemas'
 import { COLLECTIONS, NETWORKS, nftFixtures } from './fixtures/nfts'
 
 export const PAGE_SIZE = 12
@@ -52,3 +52,47 @@ export function queryNfts(q: CatalogSearch): NftList {
 }
 
 export const findNft = (id: string) => nftFixtures.find((n) => n.id === id)
+
+// ---------- Detalhe (determinístico: derivado do id) ----------
+
+const ATTRIBUTES = ['Óculos', 'Esmeralda', 'Raro', 'Chapéu', 'Fones', 'Dourado', 'Jaqueta', 'Neon', 'Único']
+const REVIEWERS = ['Marina C.', 'Lucas P.', 'Aiko T.']
+const REVIEW_TEXTS = [
+  'Arte linda e entrega rápida. O registro de procedência deu confiança na compra.',
+  'Os detalhes da obra ficam ainda melhores em alta resolução. Recomendo.',
+  'Boa coleção e comunidade ativa. Já estou de olho nos próximos lançamentos.',
+]
+
+export function toDetail(n: Nft): NftDetail {
+  const seed = Number(n.id.replace('nft-', ''))
+  const soldOut = n.editions.available === 0
+  const tokenNumber = n.name.split('#')[1] ?? String(seed)
+
+  return {
+    ...n,
+    tokenId: `#${tokenNumber.padStart(4, '0')}`,
+    description: `Um colecionável digital finalizado à mão da coleção ${n.collection}, verificado na ${n.network}, com arte desbloqueável e acesso para colecionadores.`,
+    creator: 'Nova Sato',
+    attributes: [...new Set([0, 3, 5].map((k) => ATTRIBUTES[(seed * (k + 1) + k) % ATTRIBUTES.length]))],
+    gallery: [n.image, n.image, n.image, n.image],
+    editionOptions: [
+      { id: 'e-1-1', label: '1/1', available: soldOut || seed % 5 === 0 ? 0 : 1 },
+      { id: 'e-1-10', label: '1/10', available: soldOut || seed % 3 === 0 ? 0 : 1 + (seed % 9) },
+      { id: 'e-1-50', label: '1/50', available: soldOut ? 0 : n.editions.available },
+      { id: 'e-open', label: 'ABERTA', available: soldOut ? 0 : 25 },
+    ],
+    rating: { average: 4 + (seed % 10) / 10, count: 5 + ((seed * 7) % 40) },
+    reviews: REVIEWERS.map((author, i) => ({
+      id: `${n.id}-r${i + 1}`,
+      author,
+      rating: 5 - ((seed + i) % 2),
+      text: REVIEW_TEXTS[i],
+      date: new Date(Date.UTC(2026, 8, 20 - i)).toISOString(),
+    })),
+    contract: {
+      address: `0x${`7A42${seed.toString(16).padStart(32, '0')}19E8`.toUpperCase()}`,
+      standard: 'ERC-721',
+      royaltyPercent: 5,
+    },
+  }
+}

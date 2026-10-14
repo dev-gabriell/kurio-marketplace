@@ -18,6 +18,38 @@ export const nftSchema = z.object({
 })
 export type Nft = z.infer<typeof nftSchema>
 
+export const editionOptionSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  available: z.number().int().min(0),
+})
+export type EditionOption = z.infer<typeof editionOptionSchema>
+
+export const reviewSchema = z.object({
+  id: z.string(),
+  author: z.string(),
+  rating: z.number().int().min(1).max(5),
+  text: z.string(),
+  date: z.string(),
+})
+
+export const nftDetailSchema = nftSchema.extend({
+  tokenId: z.string(),
+  description: z.string(),
+  creator: z.string(),
+  attributes: z.array(z.string()),
+  gallery: z.array(z.string()).min(1),
+  editionOptions: z.array(editionOptionSchema).min(1),
+  rating: z.object({ average: z.number().min(0).max(5), count: z.number().int().min(0) }),
+  reviews: z.array(reviewSchema),
+  contract: z.object({
+    address: z.string(),
+    standard: z.string(),
+    royaltyPercent: z.number(),
+  }),
+})
+export type NftDetail = z.infer<typeof nftDetailSchema>
+
 const facetSchema = z.object({ name: z.string(), count: z.number().int() })
 
 export const nftListSchema = z.object({

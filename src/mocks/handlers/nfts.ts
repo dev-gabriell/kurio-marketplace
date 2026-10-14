@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { catalogSearchSchema } from '@/features/catalog/schemas'
-import { findNft, queryNfts } from '../db'
+import { findNft, queryNfts, toDetail } from '../db'
 import { nftFixtures } from '../fixtures/nfts'
 import { applyScenario, getScenario } from '../scenarios'
 
@@ -17,6 +17,7 @@ export const nftHandlers = [
     return HttpResponse.json(result)
   }),
 
+  // precisa vir antes de /:id
   http.get('/api/nfts/featured', async ({ request }) => {
     const failure = await applyScenario(request)
     if (failure) return failure
@@ -36,6 +37,6 @@ export const nftHandlers = [
     if (!nft) {
       return HttpResponse.json({ code: 'not_found', message: 'NFT não encontrado.' }, { status: 404 })
     }
-    return HttpResponse.json(nft)
+    return HttpResponse.json(toDetail(nft))
   }),
 ]

@@ -1,4 +1,5 @@
 import { keepPreviousData, queryOptions } from '@tanstack/react-query'
+import { isApiError } from '@/lib/http'
 import { fetchFeaturedNft, fetchNft, fetchNfts } from './api'
 import type { CatalogSearch } from './schemas'
 
@@ -26,4 +27,7 @@ export const nftDetailQuery = (id: string) =>
   queryOptions({
     queryKey: nftKeys.detail(id),
     queryFn: ({ signal }) => fetchNft(id, signal),
+    // 404 é definitivo: não adianta tentar de novo
+    retry: (failureCount, error) =>
+      !(isApiError(error) && error.status === 404) && failureCount < 1,
   })
