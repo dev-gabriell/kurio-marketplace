@@ -1,7 +1,7 @@
-// src/mocks/handlers/nfts.ts
 import { http, HttpResponse } from 'msw'
 import { catalogSearchSchema } from '@/features/catalog/schemas'
 import { findNft, queryNfts } from '../db'
+import { nftFixtures } from '../fixtures/nfts'
 import { applyScenario, getScenario } from '../scenarios'
 
 export const nftHandlers = [
@@ -15,6 +15,17 @@ export const nftHandlers = [
       return HttpResponse.json({ ...result, items: [], total: 0, page: 1, totalPages: 1 })
     }
     return HttpResponse.json(result)
+  }),
+
+  http.get('/api/nfts/featured', async ({ request }) => {
+    const failure = await applyScenario(request)
+    if (failure) return failure
+
+    const nft = nftFixtures.find((n) => n.featured)
+    if (!nft) {
+      return HttpResponse.json({ code: 'not_found', message: 'Sem destaque.' }, { status: 404 })
+    }
+    return HttpResponse.json(nft)
   }),
 
   http.get('/api/nfts/:id', async ({ request, params }) => {
