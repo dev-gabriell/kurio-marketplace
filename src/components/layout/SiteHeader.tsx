@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { LogIn, Search, ShoppingCart } from 'lucide-react'
+import { LogIn, LogOut, Search, ShoppingCart, User } from 'lucide-react'
 import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -11,7 +12,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import { useLogout } from '@/features/auth/mutations'
+import { useAuthNavigation } from '@/features/auth/navigation'
+import { useSession } from '@/features/auth/queries'
 
 const soon = () => toast('Disponível em breve nesta demo.')
 const OTHER_LINKS = ['Mercado', 'Criadores', 'Aprenda']
@@ -49,6 +52,51 @@ function SearchDialog() {
   )
 }
 
+function AccountArea() {
+  const { user, isPending } = useSession()
+  const { openAuth } = useAuthNavigation()
+  const logout = useLogout()
+  const navigate = useNavigate()
+
+  function onLogout() {
+    logout.mutate(undefined, {
+      onSettled: () => {
+        toast('Você saiu da sua conta.')
+        navigate({ to: '/' })
+      },
+    })
+  }
+
+  if (isPending) return <div className="skeleton h-9 w-24 rounded" aria-hidden="true" />
+
+  if (user) {
+    return (
+      <div className="flex items-center gap-3">
+        <Link
+          to="/perfil"
+          className="flex items-center gap-2 rounded border border-primary bg-primary/15 px-3 py-1.5 text-sm text-primary"
+        >
+          <User className="size-4" />
+          <span className="max-w-[110px] truncate">{user.username}</span>
+        </Link>
+        <button type="button" aria-label="Sair da conta" disabled={logout.isPending} onClick={onLogout}>
+          <LogOut className="size-5" />
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => openAuth('login')}
+      className="flex items-center gap-2 rounded border border-primary bg-primary/15 px-3 py-1.5 text-sm text-primary"
+    >
+      <LogIn className="size-4" /> Entrar
+    </button>
+  )
+}
+
 export function SiteHeader({ cartCount = 0 }: { cartCount?: number }) {
   return (
     <header className="border-b border-primary/40">
@@ -80,13 +128,7 @@ export function SiteHeader({ cartCount = 0 }: { cartCount?: number }) {
               </span>
             )}
           </button>
-          <button
-            type="button"
-            onClick={soon}
-            className="flex items-center gap-2 rounded border border-primary bg-primary/15 px-3 py-1.5 text-sm text-primary"
-          >
-            <LogIn className="size-4" /> Entrar
-          </button>
+          <AccountArea />
         </div>
       </div>
     </header>

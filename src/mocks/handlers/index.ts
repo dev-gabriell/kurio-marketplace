@@ -1,4 +1,4 @@
-// src/mocks/handlers/index.ts
+import { authHandlers } from './auth'
 import { nftHandlers } from './nfts'
 
-export const handlers = [...nftHandlers]
+export const handlers = [...nftHandlers, ...authHandlers]

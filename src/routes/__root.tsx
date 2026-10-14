@@ -1,12 +1,20 @@
 import { createRootRouteWithContext, Link, Outlet } from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
-import { Toaster } from '@/components/ui/sonner'
-import { SiteHeader } from '@/components/layout/SiteHeader'
+import { z } from 'zod'
 import { SiteFooter } from '@/components/layout/SiteFooter'
+import { SiteHeader } from '@/components/layout/SiteHeader'
+import { Toaster } from '@/components/ui/sonner'
+import { AuthDialog } from '@/features/auth/components/AuthDialog'
 
 interface RouterContext {
   queryClient: QueryClient
 }
+
+// Parâmetros globais: abrem o modal de acesso e guardam o destino pós-login
+const rootSearchSchema = z.object({
+  auth: z.enum(['login', 'register']).optional().catch(undefined),
+  redirect: z.string().optional().catch(undefined),
+})
 
 function RootLayout() {
   return (
@@ -22,12 +30,14 @@ function RootLayout() {
         <Outlet />
       </div>
       <SiteFooter />
+      <AuthDialog />
       <Toaster />
     </div>
   )
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
+  validateSearch: rootSearchSchema,
   component: RootLayout,
   notFoundComponent: () => (
     <main id="conteudo" className="mx-auto max-w-xl p-8 text-center">
