@@ -1,8 +1,10 @@
+import type { Connection, Order, Wallet } from '@/features/checkout/schemas'
 import { seedFavorites, type FavoriteRecord } from '../fixtures/favorites'
 import { seedUsers, type StoredUser } from '../fixtures/users'
+import { seedWallets } from '../fixtures/wallets'
 
 const KEY = 'kurio:mockdb'
-const VERSION = 3
+const VERSION = 4
 
 export interface StoredSession {
   token: string
@@ -10,11 +12,10 @@ export interface StoredSession {
   expiresAt: string
 }
 
-/** Alterações em tempo de execução sobre as fixtures do catálogo. */
 export interface NftOverride {
   price?: string
   originalPrice?: string | null
-  stock?: Record<string, number> // disponibilidade absoluta por edição
+  stock?: Record<string, number>
   version: number
 }
 
@@ -24,13 +25,27 @@ export interface CartRecord {
   updatedAt: string
 }
 
+/** Pedido + campos internos que a API nunca expõe. */
+export interface OrderRecord extends Order {
+  userId: string
+  settleAt: string
+  outcome: 'confirmed' | 'refused'
+  txRef: string
+  purchased: { itemId: string; nftId: string; editionId: string; quantity: number }[]
+}
+
 export interface DbState {
   version: number
   users: StoredUser[]
   sessions: StoredSession[]
   favorites: Record<string, FavoriteRecord[]>
   overrides: Record<string, NftOverride>
-  carts: Record<string, CartRecord> // "user:<id>" ou "guest:<cartId>"
+  carts: Record<string, CartRecord>
+  wallets: Record<string, Wallet[]>
+  connections: Record<string, Connection>
+  orders: Record<string, OrderRecord>
+  orderSeq: number
+  idempotency: Record<string, { fingerprint: string; orderId: string }>
 }
 
 const seed = (): DbState => ({
@@ -40,6 +55,11 @@ const seed = (): DbState => ({
   favorites: structuredClone(seedFavorites),
   overrides: {},
   carts: {},
+  wallets: structuredClone(seedWallets),
+  connections: {},
+  orders: {},
+  orderSeq: 0,
+  idempotency: {},
 })
 
 let cache: DbState | null = null

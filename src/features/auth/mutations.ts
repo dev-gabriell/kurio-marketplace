@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { mergeGuestCart } from '@/features/cart/merge'
+import { clearAttempts } from '@/features/checkout/attempt'
 import { login, logout, register } from './api'
 import { clearPrivateCache } from './cache'
 import { sessionKey } from './queries'
 import type { AuthResponse } from './schemas'
 import { clearToken, setToken } from './token'
-import { mergeGuestCart } from '@/features/cart/merge'
 
 function useStartSession() {
   const queryClient = useQueryClient()
@@ -33,6 +34,7 @@ export function useLogout() {
     // Mesmo que a API falhe, o usuário sai localmente
     onSettled: () => {
       clearToken()
+      clearAttempts()
       clearPrivateCache(queryClient)
       queryClient.setQueryData(sessionKey, null)
     },

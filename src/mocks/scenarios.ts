@@ -8,6 +8,9 @@ export const SCENARIOS = [
   'offline',
   'empty',
   'favorite-error',
+  'wallet-rejected', // a carteira recusa a conexão
+  'payment-declined', // o pedido é criado e depois recusado
+  'timeout-after-create', // o pedido é criado, mas a resposta nunca chega
 ] as const
 export type ScenarioName = (typeof SCENARIOS)[number]
 

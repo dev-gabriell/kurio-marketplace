@@ -1,5 +1,6 @@
 import { clearToken } from '@/features/auth/token'
 import { clearGuestCartId } from '@/features/cart/guest'
+import { clearAttempts } from '@/features/checkout/attempt'
 import { SCENARIOS, setScenario, type ScenarioName } from './scenarios'
 import { getDb, getOverride, persist, resetDb } from './fixtures/store'
 
@@ -20,6 +21,7 @@ function reset() {
   resetDb()
   clearToken()
   clearGuestCartId()
+  clearAttempts()
   setScenario('default')
 }
 

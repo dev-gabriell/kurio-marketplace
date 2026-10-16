@@ -1,9 +1,6 @@
 import { useState, type FormEvent } from 'react'
-import { Link } from '@tanstack/react-router'
-import { toast } from 'sonner'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
-import { useAuthNavigation } from '@/features/auth/navigation'
-import { useSession } from '@/features/auth/queries'
 import { useApplyCoupon, useRemoveCoupon } from '@/features/cart/mutations'
 import type { Quote } from '@/features/cart/schemas'
 import { isApiError } from '@/lib/http'
@@ -14,8 +11,7 @@ const discountText = (discount: string) =>
   Number(discount) === 0 ? '(-) 00.00' : `(-) ${formatEth(discount)}`
 
 export function OrderSummary({ quote }: { quote: Quote }) {
-  const { user } = useSession()
-  const { openAuth } = useAuthNavigation()
+  const navigate = useNavigate()
   const apply = useApplyCoupon()
   const dropCoupon = useRemoveCoupon()
   const [code, setCode] = useState('')
@@ -25,12 +21,8 @@ export function OrderSummary({ quote }: { quote: Quote }) {
     apply.mutate(code, { onSuccess: () => setCode('') })
   }
 
-  function onCheckout() {
-    // O checkout exige login: o visitante entra e volta para o carrinho
-    if (!user) return openAuth('login', { resume: true })
-    // TODO (passo do pagamento): navegar para o checkout
-    toast('O pagamento será conectado no próximo passo.')
-  }
+  // Visitante: a guarda de /pagamento abre o login e depois retoma o pagamento
+  const onCheckout = () => navigate({ to: '/pagamento' })
 
   return (
     <aside aria-labelledby="resumo-titulo" className="text-xs">
