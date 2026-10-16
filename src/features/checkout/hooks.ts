@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSession } from '@/features/auth/queries'
 import { fetchQuote } from '@/features/cart/api'
 import { quoteKey } from '@/features/cart/queries'
+import { useSocketStatus } from '@/features/realtime/status'
 import { isApiError } from '@/lib/http'
 import { attemptFor, rememberOrder } from './attempt'
 import {
@@ -51,12 +52,14 @@ export function useCheckoutQuote() {
 
 export function useOrder(id: string) {
   const { user } = useSession()
+  const socket = useSocketStatus()
   return useQuery({
     queryKey: orderKey(user?.id ?? '', id),
     queryFn: ({ signal }) => fetchOrder(id, signal),
     enabled: !!user,
-    // Enquanto pendente, consulta até chegar a um estado final (terminal)
-    refetchInterval: (query) => (query.state.data?.status === 'pending' ? 1500 : false),
+    // Pendente: o socket entrega o resultado; sem ele, consulta a cada 1,5 s (e a cada 10 s como segurança)
+    refetchInterval: (query) =>
+      query.state.data?.status === 'pending' ? (socket === 'connected' ? 10_000 : 1500) : false,
     retry: (count, error) =>
       !(isApiError(error) && (error.status === 403 || error.status === 404)) && count < 2,
   })

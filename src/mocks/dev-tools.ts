@@ -1,6 +1,13 @@
 import { clearToken } from '@/features/auth/token'
 import { clearGuestCartId } from '@/features/cart/guest'
 import { clearAttempts } from '@/features/checkout/attempt'
+import {
+  clientsInfo,
+  emitNftUpdated,
+  emitStaleNft,
+  replayLast,
+  setRealtimeOnline,
+} from './realtime'
 import { SCENARIOS, setScenario, type ScenarioName } from './scenarios'
 import { getDb, getOverride, persist, resetDb } from './fixtures/store'
 
@@ -13,6 +20,12 @@ declare global {
       setPrice: (nftId: string, price: string) => void
       setStock: (nftId: string, editionId: string, available: number) => void
       scenarios: readonly ScenarioName[]
+      realtime: {
+        setOnline: (online: boolean) => void
+        replayLast: () => void
+        emitStaleNft: (nftId: string) => void
+        clients: () => (string | null)[]
+      }
     }
   }
 }
@@ -42,12 +55,13 @@ export function installDevTools() {
       persist()
     },
     setScenario,
-    // Ex.: __kurio.setPrice('nft-001', '2.50')
+    // Ex.: __kurio.setPrice('nft-001', '2.50'): muda o dado e emite nft.updated pelo socket
     setPrice(nftId, price) {
       const o = getOverride(nftId)
       o.price = price
       o.version += 1
       persist()
+      emitNftUpdated(nftId)
     },
     // Ex.: __kurio.setStock('nft-001', 'e-1-50', 0)
     setStock(nftId, editionId, available) {
@@ -55,7 +69,14 @@ export function installDevTools() {
       o.stock = { ...o.stock, [editionId]: available }
       o.version += 1
       persist()
+      emitNftUpdated(nftId)
     },
     scenarios: SCENARIOS,
+    realtime: {
+      setOnline: setRealtimeOnline,
+      replayLast,
+      emitStaleNft,
+      clients: clientsInfo,
+    },
   }
 }

@@ -2,12 +2,24 @@ import type { Quote } from '@/features/cart/schemas'
 import type { NetworkName, Order, OrderInput, WalletType } from '@/features/checkout/schemas'
 import { sha256Hex } from './fixtures/crypto'
 import { findNft, toDetail } from './db'
+import { emitNftUpdated, emitOrderUpdated } from './realtime'
 import { getDb, getOverride, persist, type OrderRecord } from './fixtures/store'
 
 export const SETTLE_MS = 3000
 
 export const fingerprintOf = (input: OrderInput) =>
   JSON.stringify(Object.entries(input).sort(([a], [b]) => a.localeCompare(b)))
+
+export const toPublic = (o: OrderRecord): Order => ({
+  id: o.id,
+  status: o.status,
+  version: o.version,
+  createdAt: o.createdAt,
+  updatedAt: o.updatedAt,
+  refusalReason: o.refusalReason,
+  txHash: o.txHash,
+  receipt: o.receipt,
+})
 
 export async function createOrderRecord(args: {
   userId: string
@@ -66,10 +78,17 @@ export async function createOrderRecord(args: {
   }
   db.orders[id] = record
   persist()
+
+  // Liquida e avisa pelo socket. Se a aba for recarregada, a consulta (GET) liquida do mesmo jeito.
+  setTimeout(() => {
+    const current = getDb().orders[id]
+    if (current) settleIfDue(current)
+  }, SETTLE_MS + 50)
+
   return record
 }
 
-/** Liquidação preguiçosa: vale em refresh, aba fechada ou reconexão. Estados finais são terminais. */
+/** Liquidação: vale por timer ou por consulta. Estados finais são terminais e emitem uma única vez. */
 export function settleIfDue(order: OrderRecord): OrderRecord {
   if (order.status !== 'pending' || Date.now() < Date.parse(order.settleAt)) return order
 
@@ -78,6 +97,7 @@ export function settleIfDue(order: OrderRecord): OrderRecord {
   order.version += 1
   order.updatedAt = now
 
+  const touched = new Set<string>()
   if (order.outcome === 'confirmed') {
     order.txHash = order.txRef
     const cart = getDb().carts[`user:${order.userId}`]
@@ -88,6 +108,7 @@ export function settleIfDue(order: OrderRecord): OrderRecord {
         const override = getOverride(p.nftId)
         override.stock = { ...override.stock, [p.editionId]: Math.max(0, edition.available - p.quantity) }
         override.version += 1
+        touched.add(p.nftId)
       }
       const item = cart?.items.find((i) => i.id === p.itemId)
       if (item) item.quantity -= p.quantity // só o que foi comprado sai do carrinho
@@ -101,16 +122,8 @@ export function settleIfDue(order: OrderRecord): OrderRecord {
     order.refusalReason = 'Pagamento recusado pela carteira. Nenhum valor foi cobrado.'
   }
   persist()
+
+  touched.forEach(emitNftUpdated) // o estoque baixou: catálogo e detalhe acompanham
+  emitOrderUpdated(toPublic(order), order.userId)
   return order
 }
-
-export const toPublic = (o: OrderRecord): Order => ({
-  id: o.id,
-  status: o.status,
-  version: o.version,
-  createdAt: o.createdAt,
-  updatedAt: o.updatedAt,
-  refusalReason: o.refusalReason,
-  txHash: o.txHash,
-  receipt: o.receipt,
-})

@@ -5,6 +5,7 @@ import { SiteFooter } from '@/components/layout/SiteFooter'
 import { SiteHeader } from '@/components/layout/SiteHeader'
 import { Toaster } from '@/components/ui/sonner'
 import { AuthDialog } from '@/features/auth/components/AuthDialog'
+import { useRealtime } from '@/features/realtime/useRealtime'
 
 interface RouterContext {
   queryClient: QueryClient
@@ -17,6 +18,7 @@ const rootSearchSchema = z.object({
 })
 
 function RootLayout() {
+  useRealtime()
   return (
     <div className="flex min-h-screen flex-col">
       <a
