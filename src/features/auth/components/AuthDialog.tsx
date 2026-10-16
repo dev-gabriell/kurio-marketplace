@@ -45,7 +45,7 @@ export function AuthDialog() {
             </DialogDescription>
             {redirectTo && (
               <p role="status" className="mt-3 text-center text-xs text-primary">
-                Entre para acessar esta página.
+                Entre para continuar.
               </p>
             )}
           </div>

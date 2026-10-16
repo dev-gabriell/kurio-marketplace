@@ -24,7 +24,17 @@ export function useAuthNavigation() {
     }, 'replace')
 
   return {
-    openAuth: (tab: AuthTab = 'login') => update((u) => u.searchParams.set('auth', tab), 'push'),
+    /** resume: depois de autenticar, volta para a página em que o usuário estava. */
+    openAuth: (tab: AuthTab = 'login', options?: { resume?: boolean }) =>
+      update((u) => {
+        if (options?.resume) {
+          const back = new URL(u)
+          back.searchParams.delete('auth')
+          back.searchParams.delete('redirect')
+          u.searchParams.set('redirect', back.pathname + back.search + back.hash)
+        }
+        u.searchParams.set('auth', tab)
+      }, 'push'),
     switchTab: (tab: AuthTab) => update((u) => u.searchParams.set('auth', tab), 'replace'),
     closeAuth,
     /** Após autenticar: retoma o destino original ou só fecha o modal. */

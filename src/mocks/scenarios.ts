@@ -1,6 +1,14 @@
 import { delay, HttpResponse } from 'msw'
 
-export const SCENARIOS = ['default', 'slow', 'random-latency', 'error-500', 'offline', 'empty'] as const
+export const SCENARIOS = [
+  'default',
+  'slow',
+  'random-latency',
+  'error-500',
+  'offline',
+  'empty',
+  'favorite-error',
+] as const
 export type ScenarioName = (typeof SCENARIOS)[number]
 
 const KEY = 'kurio:scenario'

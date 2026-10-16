@@ -4,13 +4,15 @@ import { clearPrivateCache } from './cache'
 import { sessionKey } from './queries'
 import type { AuthResponse } from './schemas'
 import { clearToken, setToken } from './token'
+import { mergeGuestCart } from '@/features/cart/merge'
 
 function useStartSession() {
   const queryClient = useQueryClient()
-  return ({ user, token }: AuthResponse) => {
+  return async ({ user, token }: AuthResponse) => {
     clearPrivateCache(queryClient) // nada do usuário anterior sobrevive
     setToken(token)
     queryClient.setQueryData(sessionKey, user)
+    await mergeGuestCart(queryClient) // o modal só fecha depois de o carrinho estar mesclado
   }
 }
 

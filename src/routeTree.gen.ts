@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CarrinhoRouteImport } from './routes/carrinho'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as NftIdRouteImport } from './routes/nft.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarrinhoRoute = CarrinhoRouteImport.update({
+  id: '/carrinho',
+  path: '/carrinho',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PerfilRoute = PerfilRouteImport.update({
@@ -31,30 +37,34 @@ const NftIdRoute = NftIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/carrinho': typeof CarrinhoRoute
   '/perfil': typeof PerfilRoute
   '/nft/$id': typeof NftIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/carrinho': typeof CarrinhoRoute
   '/perfil': typeof PerfilRoute
   '/nft/$id': typeof NftIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/carrinho': typeof CarrinhoRoute
   '/perfil': typeof PerfilRoute
   '/nft/$id': typeof NftIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/perfil' | '/nft/$id'
+  fullPaths: '/' | '/carrinho' | '/perfil' | '/nft/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/perfil' | '/nft/$id'
-  id: '__root__' | '/' | '/perfil' | '/nft/$id'
+  to: '/' | '/carrinho' | '/perfil' | '/nft/$id'
+  id: '__root__' | '/' | '/carrinho' | '/perfil' | '/nft/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CarrinhoRoute: typeof CarrinhoRoute
   PerfilRoute: typeof PerfilRoute
   NftIdRoute: typeof NftIdRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/carrinho': {
+      id: '/carrinho'
+      path: '/carrinho'
+      fullPath: '/carrinho'
+      preLoaderRoute: typeof CarrinhoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/perfil': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CarrinhoRoute: CarrinhoRoute,
   PerfilRoute: PerfilRoute,
   NftIdRoute: NftIdRoute,
 }

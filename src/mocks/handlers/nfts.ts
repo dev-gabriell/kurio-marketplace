@@ -1,7 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { catalogSearchSchema } from '@/features/catalog/schemas'
-import { findNft, queryNfts, toDetail } from '../db'
-import { nftFixtures } from '../fixtures/nfts'
+import { allNfts, findNft, queryNfts, toDetail } from '../db'
 import { applyScenario, getScenario } from '../scenarios'
 
 export const nftHandlers = [
@@ -22,7 +21,7 @@ export const nftHandlers = [
     const failure = await applyScenario(request)
     if (failure) return failure
 
-    const nft = nftFixtures.find((n) => n.featured)
+    const nft = allNfts().find((n) => n.featured)
     if (!nft) {
       return HttpResponse.json({ code: 'not_found', message: 'Sem destaque.' }, { status: 404 })
     }

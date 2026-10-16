@@ -1,8 +1,10 @@
 import { useState, type ReactNode } from 'react'
-import { Heart, Mail } from 'lucide-react'
-import { toast } from 'sonner'
+import { useNavigate } from '@tanstack/react-router'
+import { Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useAddToCart } from '@/features/cart/mutations'
 import type { EditionOption, NftDetail } from '@/features/catalog/schemas'
+import { FavoriteButton } from '@/features/favorites/FavoriteButton'
 import { formatEth } from '@/lib/money'
 import { EditionPicker } from './EditionPicker'
 import { QuantityStepper } from './QuantityStepper'
@@ -34,14 +36,20 @@ function shareLinks(name: string): ShareLink[] {
 
 export function NftInfo({ nft, selected, onEditionChange }: Props) {
   const [quantity, setQuantity] = useState(1)
+  const navigate = useNavigate()
+  const add = useAddToCart()
 
   const max = selected ? Math.min(selected.available, MAX_PER_ORDER) : 0
   const qty = Math.max(1, Math.min(quantity, max)) // sempre dentro do limite da edição
   const soldOut = !selected
 
-  // TODO (passos de auth e carrinho): trocar por addToCart e toggleFavorite reais
-  const onBuy = () => toast('A compra será conectada ao carrinho no próximo passo.')
-  const onFavorite = () => toast('Favoritos serão conectados ao login no próximo passo.')
+  function onBuy() {
+    if (!selected) return
+    add.mutate(
+      { nftId: nft.id, editionId: selected.id, quantity: qty },
+      { onSuccess: () => navigate({ to: '/carrinho' }) },
+    )
+  }
 
   return (
     <div>
@@ -81,10 +89,10 @@ export function NftInfo({ nft, selected, onEditionChange }: Props) {
       <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
         <QuantityStepper value={qty} max={max} disabled={soldOut} onChange={setQuantity} />
         <div className="flex gap-3">
-          <Button type="button" disabled={soldOut} onClick={onBuy}>COMPRAR</Button>
-          <Button type="button" variant="outline" onClick={onFavorite}>
-            <Heart className="size-4" /> Favoritar
+          <Button type="button" disabled={soldOut || add.isPending} onClick={onBuy}>
+            {add.isPending ? 'ADICIONANDO…' : 'COMPRAR'}
           </Button>
+          <FavoriteButton nftId={nft.id} />
         </div>
       </div>
       <p className="mt-2 min-h-4 text-xs text-muted-foreground" aria-live="polite">

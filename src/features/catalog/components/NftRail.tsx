@@ -1,0 +1,69 @@
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import type { Nft } from '../schemas'
+import { NftCard, NftCardSkeleton } from './NftCard'
+
+const PAGE_SIZE = 5
+
+interface Props {
+  id: string
+  title: string
+  items: Nft[]
+  isPending: boolean
+  isError: boolean
+  onRetry: () => void
+}
+
+export function NftRail({ id, title, items, isPending, isError, onRetry }: Props) {
+  const [page, setPage] = useState(0)
+  const pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE))
+  const current = Math.min(page, pages - 1)
+  const visible = items.slice(current * PAGE_SIZE, (current + 1) * PAGE_SIZE)
+
+  if (!isPending && !isError && items.length === 0) return null
+
+  return (
+    <section aria-labelledby={id} className="mt-14">
+      <h2 id={id} className="border-b border-primary/40 pb-3 text-sm font-bold text-primary">
+        {title}
+      </h2>
+
+      {isPending && (
+        <ul className="mt-6 grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5" aria-busy="true">
+          {Array.from({ length: PAGE_SIZE }, (_, i) => <NftCardSkeleton key={i} />)}
+        </ul>
+      )}
+
+      {isError && (
+        <div role="alert" className="mt-6 bg-card p-4 text-xs">
+          <p>Não foi possível carregar esta lista.</p>
+          <Button type="button" size="sm" className="mt-3" onClick={onRetry}>
+            Tentar novamente
+          </Button>
+        </div>
+      )}
+
+      {visible.length > 0 && (
+        <ul className="mt-6 grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5">
+          {visible.map((n) => <NftCard key={n.id} nft={n} />)}
+        </ul>
+      )}
+
+      {pages > 1 && (
+        <div role="group" aria-label={`Páginas: ${title}`} className="mt-6 flex justify-center gap-2">
+          {Array.from({ length: pages }, (_, i) => (
+            <button
+              key={i}
+              type="button"
+              aria-label={`Página ${i + 1} de ${pages}`}
+              aria-current={i === current}
+              onClick={() => setPage(i)}
+              className={cn('size-2.5 rounded-full border border-primary', i === current && 'bg-primary')}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}

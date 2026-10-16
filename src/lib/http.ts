@@ -1,5 +1,6 @@
 import axios, { isAxiosError } from 'axios'
 import { getToken } from '@/features/auth/token'
+import { ensureGuestCartId } from '@/features/cart/guest'
 
 declare module 'axios' {
   interface AxiosRequestConfig {
@@ -29,9 +30,9 @@ export function setSessionExpiredHandler(handler: (() => void) | null) {
 http.interceptors.request.use((config) => {
   const token = getToken()
   if (token) config.headers.set('Authorization', `Bearer ${token}`)
+  else if (config.url?.startsWith('/cart')) config.headers.set('X-Cart-Id', ensureGuestCartId())
   return config
 })
-
 http.interceptors.response.use(
   (response) => response,
   (error: unknown) => {

@@ -1,7 +1,8 @@
-import { seedUsers, type StoredUser } from './users'
+import { seedFavorites, type FavoriteRecord } from '../fixtures/favorites'
+import { seedUsers, type StoredUser } from '../fixtures/users'
 
 const KEY = 'kurio:mockdb'
-const VERSION = 1
+const VERSION = 3
 
 export interface StoredSession {
   token: string
@@ -9,16 +10,36 @@ export interface StoredSession {
   expiresAt: string
 }
 
+/** Alterações em tempo de execução sobre as fixtures do catálogo. */
+export interface NftOverride {
+  price?: string
+  originalPrice?: string | null
+  stock?: Record<string, number> // disponibilidade absoluta por edição
+  version: number
+}
+
+export interface CartRecord {
+  items: { id: string; nftId: string; editionId: string; quantity: number }[]
+  couponCode: string | null
+  updatedAt: string
+}
+
 export interface DbState {
   version: number
   users: StoredUser[]
   sessions: StoredSession[]
+  favorites: Record<string, FavoriteRecord[]>
+  overrides: Record<string, NftOverride>
+  carts: Record<string, CartRecord> // "user:<id>" ou "guest:<cartId>"
 }
 
 const seed = (): DbState => ({
   version: VERSION,
   users: structuredClone(seedUsers),
   sessions: [],
+  favorites: structuredClone(seedFavorites),
+  overrides: {},
+  carts: {},
 })
 
 let cache: DbState | null = null
@@ -53,4 +74,8 @@ export function getDb(): DbState {
 export function resetDb() {
   cache = seed()
   persist()
+}
+
+export function getOverride(nftId: string): NftOverride {
+  return (getDb().overrides[nftId] ??= { version: 1 })
 }

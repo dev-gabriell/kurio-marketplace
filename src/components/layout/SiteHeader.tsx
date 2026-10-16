@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { LogIn, LogOut, Search, ShoppingCart, User } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -15,9 +15,11 @@ import { Input } from '@/components/ui/input'
 import { useLogout } from '@/features/auth/mutations'
 import { useAuthNavigation } from '@/features/auth/navigation'
 import { useSession } from '@/features/auth/queries'
+import { useCartCount } from '@/features/cart/queries'
+import { cn } from '@/lib/utils'
 
 const soon = () => toast('Disponível em breve nesta demo.')
-const OTHER_LINKS = ['Mercado', 'Criadores', 'Aprenda']
+const OTHER_LINKS = ['Criadores', 'Aprenda']
 
 function SearchDialog() {
   const [open, setOpen] = useState(false)
@@ -97,19 +99,25 @@ function AccountArea() {
   )
 }
 
-export function SiteHeader({ cartCount = 0 }: { cartCount?: number }) {
+export function SiteHeader() {
+  const cartCount = useCartCount()
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  // No Figma, "Mercado" fica sublinhado no detalhe do NFT e no carrinho
+  const inMarket = pathname.startsWith('/nft') || pathname === '/carrinho'
+  const navItem = (active: boolean) =>
+    cn('flex items-center border-b-2', active ? 'border-primary text-primary' : 'border-transparent')
+
   return (
     <header className="border-b border-primary/40">
       <div className="mx-auto flex h-[68px] max-w-6xl items-center justify-between px-6">
         <Link to="/" className="text-xs font-bold tracking-widest">KURIO</Link>
 
         <nav aria-label="Principal" className="flex h-full items-stretch gap-8 text-sm">
-          <Link
-            to="/"
-            activeOptions={{ exact: true }}
-            className="flex items-center border-b-2 border-transparent data-[status=active]:border-primary data-[status=active]:text-primary"
-          >
+          <Link to="/" className={navItem(pathname === '/')} aria-current={pathname === '/' ? 'page' : undefined}>
             Início
+          </Link>
+          <Link to="/" hash="catalogo" className={navItem(inMarket)} aria-current={inMarket ? 'page' : undefined}>
+            Mercado
           </Link>
           {OTHER_LINKS.map((label) => (
             <button key={label} type="button" onClick={soon} className="border-b-2 border-transparent">
@@ -120,14 +128,14 @@ export function SiteHeader({ cartCount = 0 }: { cartCount?: number }) {
 
         <div className="flex items-center gap-5">
           <SearchDialog />
-          <button type="button" aria-label={`Carrinho, ${cartCount} itens`} onClick={soon} className="relative">
+          <Link to="/carrinho" aria-label={`Carrinho, ${cartCount} itens`} className="relative">
             <ShoppingCart className="size-5" />
             {cartCount > 0 && (
               <span className="absolute -right-2 -top-2 grid size-4 place-items-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
                 {cartCount}
               </span>
             )}
-          </button>
+          </Link>
           <AccountArea />
         </div>
       </div>
